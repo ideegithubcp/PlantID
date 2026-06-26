@@ -86,7 +86,9 @@ async function identifyWithPlantNet(files) {
 
   const form = new FormData();
   for (const file of files) {
-    form.append('images', fs.createReadStream(file.path), file.originalname || 'plant.jpg');
+    const ext = file.mimetype === 'image/png' ? '.png' : '.jpg';
+    const filename = (file.originalname || 'plant') + (file.originalname?.includes('.') ? '' : ext);
+    form.append('images', fs.createReadStream(file.path), filename);
   }
 
   const url = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}&lang=en&nb-results=3`;

@@ -3,8 +3,13 @@ const express = require('express');
 const multer = require('multer');
 const fetch = require('node-fetch');
 const fs = require('fs');
+const path = require('path');
 const FormData = require('form-data');
 const tracker = require('./spend_tracker');
+
+// Ensure uploads dir exists (Render filesystem starts empty)
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 
 const app = express();
 const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024 } });

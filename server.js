@@ -2,9 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const fetch = require('node-fetch');
-const path = require('path');
 const fs = require('fs');
 const FormData = require('form-data');
+const tracker = require('./spend_tracker');
 
 const app = express();
 const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024 } });
@@ -12,30 +12,65 @@ const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024 }
 app.use(express.json());
 app.use(express.static('public'));
 
-// --- PlantNet + Gemini (free default) ---
+// --- Spend status endpoint (used by frontend) ---
+app.get('/api/spend', (req, res) => res.json(tracker.getStatus()));
+
+// --- Admin: approve more Claude spend ---
+app.post('/api/spend/approve', (req, res) => {
+  const secret = process.env.ADMIN_SECRET;
+  if (secret && req.body.secret !== secret) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  res.json(tracker.approve());
+});
+
+// --- PlantNet + Gemini (free default, falls back to Claude) ---
 app.post('/api/identify', upload.array('images', 5), async (req, res) => {
   const files = req.files;
   if (!files || files.length === 0) return res.status(400).json({ error: 'No images provided' });
 
   try {
     const plantNetResult = await identifyWithPlantNet(files);
-    const geminiAnalysis = await analyzeWithGemini(files, plantNetResult);
+    let result;
+    try {
+      result = await analyzeWithGemini(files, plantNetResult);
+    } catch (geminiErr) {
+      console.warn('Gemini unavailable, falling back to Claude:', geminiErr.message);
+      if (tracker.isLocked()) {
+        cleanup(files);
+        return res.status(402).json({
+          error: 'claude_locked',
+          message: `Claude spend limit of $${tracker.SPEND_LIMIT} reached. Approve more spend to continue.`,
+          spend: tracker.getStatus()
+        });
+      }
+      result = await identifyWithClaude(files, plantNetResult);
+    }
     cleanup(files);
-    res.json(geminiAnalysis);
+    res.json(result);
   } catch (err) {
     cleanup(files);
-    console.error('Free identify error:', err.message);
+    console.error('Identify error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- Claude ---
+// --- Claude explicit mode ---
 app.post('/api/identify/claude', upload.array('images', 5), async (req, res) => {
   const files = req.files;
   if (!files || files.length === 0) return res.status(400).json({ error: 'No images provided' });
 
+  if (tracker.isLocked()) {
+    cleanup(files);
+    return res.status(402).json({
+      error: 'claude_locked',
+      message: `Claude spend limit of $${tracker.SPEND_LIMIT} reached. Approve more spend to continue.`,
+      spend: tracker.getStatus()
+    });
+  }
+
   try {
-    const result = await identifyWithClaude(files);
+    const result = await identifyWithClaude(files, null);
     cleanup(files);
     res.json(result);
   } catch (err) {
@@ -53,7 +88,6 @@ async function identifyWithPlantNet(files) {
   for (const file of files) {
     form.append('images', fs.createReadStream(file.path), file.originalname || 'plant.jpg');
   }
-  form.append('include-related-images', 'false');
 
   const url = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}&lang=en&nb-results=3`;
   const response = await fetch(url, { method: 'POST', body: form });
@@ -70,7 +104,6 @@ async function analyzeWithGemini(files, plantNetResult) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
-  // Build context from PlantNet results
   let plantContext = '';
   if (plantNetResult && plantNetResult.results && plantNetResult.results.length > 0) {
     const top = plantNetResult.results.slice(0, 3);
@@ -84,7 +117,6 @@ async function analyzeWithGemini(files, plantNetResult) {
     plantContext = 'PlantNet could not identify the plant.';
   }
 
-  // Encode images as base64 for Gemini
   const imageParts = files.map(file => ({
     inline_data: {
       mime_type: file.mimetype,
@@ -98,13 +130,8 @@ ${plantContext}
 
 Based on the photos and PlantNet's analysis, please:
 1. Confirm or correct the identification with your own visual assessment.
-2. If confident (>70%), provide:
-   - Common name and scientific name
-   - Brief description (2-3 sentences)
-   - Care tips (watering, light, soil)
-   - Any toxicity or safety warnings
-   - Interesting facts
-3. If NOT confident, explain what's unclear and ask for specific better photos (e.g., "Please photograph the leaf underside", "A close-up of the flower would help"). Do NOT guess.
+2. If confident (>70%), provide common name, scientific name, brief description, care tips, toxicity warnings, and interesting facts.
+3. If NOT confident, explain what's unclear and ask for specific better photos. Do NOT guess.
 
 Respond in JSON format:
 {
@@ -118,12 +145,10 @@ Respond in JSON format:
   "facts": ["...", "..."],
   "needsBetterPhoto": false,
   "photoRequest": null
-}
-
-If not identified, set identified=false, needsBetterPhoto=true, and photoRequest to a clear instruction string.`;
+}`;
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -146,7 +171,7 @@ If not identified, set identified=false, needsBetterPhoto=true, and photoRequest
   return JSON.parse(text);
 }
 
-async function identifyWithClaude(files) {
+async function identifyWithClaude(files, plantNetResult) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
 
@@ -159,16 +184,18 @@ async function identifyWithClaude(files) {
     }
   }));
 
-  const prompt = `You are an expert botanist. Identify the plant in these ${files.length} photo(s).
+  let plantContext = '';
+  if (plantNetResult && plantNetResult.results && plantNetResult.results.length > 0) {
+    const top = plantNetResult.results.slice(0, 3);
+    plantContext = `PlantNet identified these candidates:\n` +
+      top.map((r, i) => {
+        const score = Math.round(r.score * 100);
+        const common = r.species.commonNames?.[0] || 'unknown';
+        return `${i + 1}. ${r.species.scientificNameWithoutAuthor} (${common}) — ${score}%`;
+      }).join('\n') + '\n\n';
+  }
 
-If confident, provide:
-- Common name and scientific name
-- Brief description
-- Care tips (watering, light, soil)
-- Toxicity/safety notes
-- 2-3 interesting facts
-
-If NOT confident, explain what's unclear and ask for specific better photos.
+  const prompt = `You are an expert botanist. Identify the plant in these ${files.length} photo(s).\n\n${plantContext}If confident, provide common name, scientific name, brief description, care tips (water/light/soil), toxicity notes, and 2-3 interesting facts. If NOT confident, ask for specific better photos.
 
 Respond in this exact JSON format:
 {
@@ -194,13 +221,7 @@ Respond in this exact JSON format:
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      messages: [{
-        role: 'user',
-        content: [
-          ...imageContent,
-          { type: 'text', text: prompt }
-        ]
-      }]
+      messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: prompt }] }]
     })
   });
 
@@ -212,6 +233,11 @@ Respond in this exact JSON format:
   const data = await response.json();
   const text = data.content?.[0]?.text;
   if (!text) throw new Error('Empty response from Claude');
+
+  // Record spend from usage stats
+  if (data.usage) {
+    tracker.recordUsage(data.usage.input_tokens, data.usage.output_tokens);
+  }
 
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Could not parse Claude response');
@@ -225,4 +251,8 @@ function cleanup(files) {
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`PlantID running at http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  const status = tracker.getStatus();
+  console.log(`PlantID running at http://localhost:${PORT}`);
+  console.log(`Claude spend: $${status.totalSpend.toFixed(4)} / $${status.limit} (${status.percentUsed}% used)${status.locked ? ' — LOCKED' : ''}`);
+});

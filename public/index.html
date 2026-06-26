@@ -78,6 +78,48 @@
       background: var(--accent);
     }
     .toggle-btn.claude-active .dot { background: #c4b5fd; }
+    .toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Spend bar */
+    .spend-bar-wrap {
+      background: var(--surface);
+      border-bottom: 1px solid #1e3d22;
+      padding: 6px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .spend-bar-wrap.hidden { display: none; }
+    .spend-bar {
+      flex: 1;
+      max-width: 180px;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .spend-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.4s;
+    }
+    .spend-bar-fill.warning { background: #fbbf24; }
+    .spend-bar-fill.danger { background: var(--danger); }
+
+    /* Lock banner */
+    .lock-banner {
+      background: #2d1515;
+      border-bottom: 1px solid var(--danger);
+      padding: 10px 24px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--danger);
+      display: none;
+    }
+    .lock-banner.visible { display: block; }
 
     /* Main */
     main {
@@ -326,6 +368,18 @@
   </div>
 </div>
 
+<!-- Spend bar (only shown in Claude mode) -->
+<div class="spend-bar-wrap hidden" id="spend-bar-wrap">
+  <span id="spend-text">Claude: $0.00 / $2.00</span>
+  <div class="spend-bar"><div class="spend-bar-fill" id="spend-bar-fill" style="width:0%"></div></div>
+  <span id="spend-pct">0%</span>
+</div>
+
+<!-- Lock banner -->
+<div class="lock-banner" id="lock-banner">
+  🔒 Claude spend limit of $2.00 reached — Claude is disabled until you approve more spend.
+</div>
+
 <main>
   <h1>What plant is this?</h1>
   <p class="subtitle">Upload 1–5 photos for the best result</p>
@@ -350,15 +404,57 @@
 <script>
   let files = [];
   let useClaudeMode = false;
+  let claudeLocked = false;
 
-  // Toggle mode
-  function toggleMode() {
-    useClaudeMode = !useClaudeMode;
+  // Load spend status on page load
+  async function loadSpend() {
+    try {
+      const res = await fetch('/api/spend');
+      const data = await res.json();
+      updateSpendUI(data);
+    } catch {}
+  }
+
+  function updateSpendUI(data) {
+    claudeLocked = data.locked;
+    const wrap = document.getElementById('spend-bar-wrap');
+    const fill = document.getElementById('spend-bar-fill');
+    const text = document.getElementById('spend-text');
+    const pct = document.getElementById('spend-pct');
+    const banner = document.getElementById('lock-banner');
+    const toggleBtn = document.getElementById('toggle-btn');
+
+    if (useClaudeMode) wrap.classList.remove('hidden');
+    else wrap.classList.add('hidden');
+
+    const percent = parseFloat(data.percentUsed);
+    fill.style.width = percent + '%';
+    fill.className = 'spend-bar-fill' + (percent >= 90 ? ' danger' : percent >= 60 ? ' warning' : '');
+    text.textContent = `Claude: $${data.totalSpend.toFixed(4)} / $${data.limit.toFixed(2)}`;
+    pct.textContent = percent + '%';
+
+    if (data.locked) {
+      banner.classList.add('visible');
+      toggleBtn.disabled = true;
+      toggleBtn.title = 'Claude spend limit reached';
+      if (useClaudeMode) {
+        useClaudeMode = false;
+        applyModeUI();
+      }
+    } else {
+      banner.classList.remove('visible');
+      toggleBtn.disabled = false;
+      toggleBtn.title = '';
+    }
+  }
+
+  function applyModeUI() {
     const btn = document.getElementById('toggle-btn');
     const text = document.getElementById('toggle-text');
     const label = document.getElementById('mode-label');
     const idBtn = document.getElementById('identify-btn');
     const indicator = document.getElementById('mode-indicator');
+    const wrap = document.getElementById('spend-bar-wrap');
 
     if (useClaudeMode) {
       btn.classList.add('claude-active');
@@ -366,14 +462,25 @@
       label.textContent = 'Claude AI active';
       idBtn.classList.add('claude-mode');
       indicator.textContent = '🤖 Powered by Claude (Anthropic)';
+      wrap.classList.remove('hidden');
     } else {
       btn.classList.remove('claude-active');
       text.textContent = 'Use Claude';
       label.textContent = 'Using free AI';
       idBtn.classList.remove('claude-mode');
       indicator.textContent = '🌱 Powered by PlantNet + Gemini Flash (free)';
+      wrap.classList.add('hidden');
     }
   }
+
+  // Toggle mode
+  function toggleMode() {
+    if (claudeLocked) return;
+    useClaudeMode = !useClaudeMode;
+    applyModeUI();
+  }
+
+  loadSpend();
 
   // Drag & drop
   const dropZone = document.getElementById('drop-zone');
@@ -432,8 +539,16 @@
     try {
       const res = await fetch(endpoint, { method: 'POST', body: formData });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Unknown error');
-      renderResult(data);
+      if (res.status === 402 && data.error === 'claude_locked') {
+        updateSpendUI(data.spend);
+        output.innerHTML = `<div class="error-box">🔒 ${data.message}</div>`;
+      } else if (!res.ok) {
+        throw new Error(data.error || 'Unknown error');
+      } else {
+        // Refresh spend after every Claude call
+        if (useClaudeMode) loadSpend();
+        renderResult(data);
+      }
     } catch (err) {
       output.innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
     } finally {

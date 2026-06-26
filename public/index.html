@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlantID — Identify Any Plant</title>
+  <style>
+    :root {
+      --bg: #0d1f0f;
+      --surface: #132615;
+      --surface2: #1a3320;
+      --accent: #4ade80;
+      --accent2: #86efac;
+      --accent-dim: #16a34a;
+      --text: #e8f5e9;
+      --muted: #6b8f72;
+      --danger: #f87171;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid #1e3d22;
+    }
+    .topbar .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .topbar .brand span { font-size: 1.6rem; }
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mode-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1.5px solid var(--accent-dim);
+      color: var(--accent2);
+      padding: 7px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .toggle-btn:hover { background: var(--accent-dim); color: #fff; }
+    .toggle-btn.claude-active {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border-color: #7c3aed;
+      color: #fff;
+    }
+    .toggle-btn .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .toggle-btn.claude-active .dot { background: #c4b5fd; }
+
+    /* Main */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 32px;
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed var(--accent-dim);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--surface);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+    .drop-zone .icon { font-size: 3rem; margin-bottom: 12px; }
+    .drop-zone p { color: var(--muted); font-size: 0.95rem; }
+    .drop-zone strong { color: var(--accent2); }
+    #file-input { display: none; }
+
+    /* Previews */
+    .previews {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .preview-wrap {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid var(--surface2);
+    }
+    .preview-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .preview-wrap .remove {
+      position: absolute;
+      top: 4px; right: 4px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Identify button */
+    .identify-btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      background: var(--accent-dim);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .identify-btn:hover:not(:disabled) { background: #15803d; }
+    .identify-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .identify-btn.claude-mode {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    }
+    .identify-btn.claude-mode:hover:not(:disabled) { opacity: 0.9; }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--surface2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Result card */
+    .result {
+      margin-top: 32px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .result-header {
+      padding: 20px 24px;
+      background: var(--surface2);
+      border-bottom: 1px solid #1e3d22;
+    }
+    .result-header .plant-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .result-header .scientific {
+      font-style: italic;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 2px;
+    }
+    .confidence-badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .confidence-badge.high { background: #14532d; color: #4ade80; }
+    .confidence-badge.medium { background: #713f12; color: #fbbf24; }
+    .confidence-badge.low { background: #7f1d1d; color: #f87171; }
+
+    .result-body { padding: 20px 24px; }
+    .section { margin-bottom: 20px; }
+    .section h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .section p { font-size: 0.95rem; line-height: 1.6; color: var(--text); }
+
+    .care-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .care-item {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .care-item .icon { font-size: 1.4rem; margin-bottom: 4px; }
+    .care-item .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+    .care-item .value { font-size: 0.85rem; margin-top: 4px; }
+
+    .facts-list { list-style: none; }
+    .facts-list li {
+      padding: 6px 0;
+      border-bottom: 1px solid var(--surface2);
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .facts-list li:last-child { border: none; }
+    .facts-list li::before { content: "🌿 "; }
+
+    .toxicity {
+      background: #2d1515;
+      border-left: 3px solid var(--danger);
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.9rem;
+    }
+
+    /* Photo request card */
+    .photo-request {
+      margin-top: 32px;
+      background: var(--surface);
+      border: 1.5px solid #713f12;
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .photo-request h2 {
+      font-size: 1.1rem;
+      color: #fbbf24;
+      margin-bottom: 8px;
+    }
+    .photo-request p {
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Mode indicator */
+    .mode-indicator {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    /* Error */
+    .error-box {
+      margin-top: 20px;
+      background: #2d1515;
+      border: 1px solid var(--danger);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      color: var(--danger);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 500px) {
+      .care-grid { grid-template-columns: 1fr 1fr; }
+      h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span>🌿</span> PlantID
+  </div>
+  <div class="mode-toggle">
+    <span class="mode-label" id="mode-label">Using free AI</span>
+    <button class="toggle-btn" id="toggle-btn" onclick="toggleMode()">
+      <span class="dot"></span>
+      <span id="toggle-text">Use Claude</span>
+    </button>
+  </div>
+</div>
+
+<main>
+  <h1>What plant is this?</h1>
+  <p class="subtitle">Upload 1–5 photos for the best result</p>
+
+  <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="icon">📷</div>
+    <p><strong>Click to upload</strong> or drag & drop photos here</p>
+    <p style="margin-top:6px;font-size:0.82rem;">JPG, PNG, WEBP · up to 10MB each · max 5 photos</p>
+  </div>
+  <input type="file" id="file-input" accept="image/*" multiple />
+
+  <div class="previews" id="previews"></div>
+
+  <button class="identify-btn" id="identify-btn" onclick="identify()" disabled>
+    Identify Plant
+  </button>
+  <div class="mode-indicator" id="mode-indicator">🌱 Powered by PlantNet + Gemini Flash (free)</div>
+
+  <div id="output"></div>
+</main>
+
+<script>
+  let files = [];
+  let useClaudeMode = false;
+
+  // Toggle mode
+  function toggleMode() {
+    useClaudeMode = !useClaudeMode;
+    const btn = document.getElementById('toggle-btn');
+    const text = document.getElementById('toggle-text');
+    const label = document.getElementById('mode-label');
+    const idBtn = document.getElementById('identify-btn');
+    const indicator = document.getElementById('mode-indicator');
+
+    if (useClaudeMode) {
+      btn.classList.add('claude-active');
+      text.textContent = '✓ Using Claude';
+      label.textContent = 'Claude AI active';
+      idBtn.classList.add('claude-mode');
+      indicator.textContent = '🤖 Powered by Claude (Anthropic)';
+    } else {
+      btn.classList.remove('claude-active');
+      text.textContent = 'Use Claude';
+      label.textContent = 'Using free AI';
+      idBtn.classList.remove('claude-mode');
+      indicator.textContent = '🌱 Powered by PlantNet + Gemini Flash (free)';
+    }
+  }
+
+  // Drag & drop
+  const dropZone = document.getElementById('drop-zone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles([...e.dataTransfer.files]);
+  });
+
+  document.getElementById('file-input').addEventListener('change', e => {
+    addFiles([...e.target.files]);
+    e.target.value = '';
+  });
+
+  function addFiles(newFiles) {
+    const imageFiles = newFiles.filter(f => f.type.startsWith('image/'));
+    const remaining = 5 - files.length;
+    files = [...files, ...imageFiles.slice(0, remaining)];
+    renderPreviews();
+    document.getElementById('identify-btn').disabled = files.length === 0;
+  }
+
+  function removeFile(idx) {
+    files.splice(idx, 1);
+    renderPreviews();
+    document.getElementById('identify-btn').disabled = files.length === 0;
+  }
+
+  function renderPreviews() {
+    const container = document.getElementById('previews');
+    container.innerHTML = '';
+    files.forEach((file, idx) => {
+      const url = URL.createObjectURL(file);
+      const wrap = document.createElement('div');
+      wrap.className = 'preview-wrap';
+      wrap.innerHTML = `<img src="${url}" /><button class="remove" onclick="removeFile(${idx})">✕</button>`;
+      container.appendChild(wrap);
+    });
+  }
+
+  async function identify() {
+    if (files.length === 0) return;
+
+    const btn = document.getElementById('identify-btn');
+    const output = document.getElementById('output');
+    btn.disabled = true;
+    output.innerHTML = `<div class="loading"><div class="spinner"></div><p>Analyzing your plant…</p></div>`;
+
+    const formData = new FormData();
+    files.forEach(f => formData.append('images', f));
+
+    const endpoint = useClaudeMode ? '/api/identify/claude' : '/api/identify';
+
+    try {
+      const res = await fetch(endpoint, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Unknown error');
+      renderResult(data);
+    } catch (err) {
+      output.innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function renderResult(data) {
+    const output = document.getElementById('output');
+
+    if (data.needsBetterPhoto || !data.identified) {
+      output.innerHTML = `
+        <div class="photo-request">
+          <h2>📸 Need better photos</h2>
+          <p>${data.photoRequest || "Please provide clearer or additional photos for a confident identification."}</p>
+        </div>`;
+      return;
+    }
+
+    const toxicitySection = data.toxicity && data.toxicity.toLowerCase() !== 'none' && data.toxicity.toLowerCase() !== 'non-toxic'
+      ? `<div class="section">
+          <h3>⚠️ Toxicity / Safety</h3>
+          <div class="toxicity">${data.toxicity}</div>
+        </div>` : '';
+
+    const factsSection = data.facts && data.facts.length
+      ? `<div class="section">
+          <h3>Interesting Facts</h3>
+          <ul class="facts-list">${data.facts.map(f => `<li>${f}</li>`).join('')}</ul>
+        </div>` : '';
+
+    const care = data.care || {};
+
+    output.innerHTML = `
+      <div class="result">
+        <div class="result-header">
+          <div class="plant-name">${data.commonName || 'Unknown Plant'}</div>
+          <div class="scientific">${data.scientificName || ''}</div>
+          <span class="confidence-badge ${data.confidence || 'medium'}">${data.confidence || 'medium'} confidence</span>
+        </div>
+        <div class="result-body">
+          ${data.description ? `<div class="section"><h3>About</h3><p>${data.description}</p></div>` : ''}
+          ${care.water || care.light || care.soil ? `
+          <div class="section">
+            <h3>Care Guide</h3>
+            <div class="care-grid">
+              ${care.water ? `<div class="care-item"><div class="icon">💧</div><div class="label">Water</div><div class="value">${care.water}</div></div>` : ''}
+              ${care.light ? `<div class="care-item"><div class="icon">☀️</div><div class="label">Light</div><div class="value">${care.light}</div></div>` : ''}
+              ${care.soil ? `<div class="care-item"><div class="icon">🪴</div><div class="label">Soil</div><div class="value">${care.soil}</div></div>` : ''}
+            </div>
+          </div>` : ''}
+          ${toxicitySection}
+          ${factsSection}
+        </div>
+      </div>`;
+  }
+</script>
+</body>
+</html>

@@ -213,6 +213,21 @@
     }
     .identify-btn.claude-mode:hover:not(:disabled) { opacity: 0.9; }
 
+    .reset-btn {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--surface2);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover { border-color: var(--muted); color: var(--text); }
+
     /* Loading */
     .loading {
       text-align: center;
@@ -396,6 +411,9 @@
   <button class="identify-btn" id="identify-btn" onclick="identify()" disabled>
     Identify Plant
   </button>
+  <button class="reset-btn" id="reset-btn" onclick="reset()" style="display:none">
+    🔄 Try another plant
+  </button>
   <div class="mode-indicator" id="mode-indicator">🌱 Powered by PlantNet + Gemini Flash (free)</div>
 
   <div id="output"></div>
@@ -480,6 +498,14 @@
     applyModeUI();
   }
 
+  function reset() {
+    files = [];
+    renderPreviews();
+    document.getElementById('output').innerHTML = '';
+    document.getElementById('identify-btn').disabled = true;
+    document.getElementById('reset-btn').style.display = 'none';
+  }
+
   loadSpend();
 
   // Drag & drop
@@ -548,6 +574,7 @@
         // Refresh spend after every Claude call
         if (useClaudeMode) loadSpend();
         renderResult(data);
+        document.getElementById('reset-btn').style.display = 'block';
       }
     } catch (err) {
       output.innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
@@ -565,6 +592,7 @@
           <h2>📸 Need better photos</h2>
           <p>${data.photoRequest || "Please provide clearer or additional photos for a confident identification."}</p>
         </div>`;
+      document.getElementById('reset-btn').style.display = 'block';
       return;
     }
 

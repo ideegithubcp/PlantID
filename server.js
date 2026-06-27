@@ -40,16 +40,22 @@ app.post('/api/identify', upload.array('images', 5), async (req, res) => {
     try {
       result = await analyzeWithGemini(files, plantNetResult);
     } catch (geminiErr) {
-      console.warn('Gemini unavailable, falling back to Claude:', geminiErr.message);
-      if (tracker.isLocked()) {
-        cleanup(files);
-        return res.status(402).json({
-          error: 'claude_locked',
-          message: `Claude spend limit of $${tracker.SPEND_LIMIT} reached. Approve more spend to continue.`,
-          spend: tracker.getStatus()
-        });
+      console.warn('Gemini unavailable, trying Wikipedia fallback:', geminiErr.message);
+      try {
+        result = await analyzeWithWikipedia(plantNetResult);
+        console.log('Wikipedia fallback succeeded');
+      } catch (wikiErr) {
+        console.warn('Wikipedia fallback failed, trying Claude:', wikiErr.message);
+        if (tracker.isLocked()) {
+          cleanup(files);
+          return res.status(402).json({
+            error: 'claude_locked',
+            message: `Claude spend limit of $${tracker.SPEND_LIMIT} reached. Approve more spend to continue.`,
+            spend: tracker.getStatus()
+          });
+        }
+        result = await identifyWithClaude(files, plantNetResult);
       }
-      result = await identifyWithClaude(files, plantNetResult);
     }
     cleanup(files);
     res.json(result);
@@ -255,6 +261,48 @@ For lookalikes include plants that could be confused with this one, especially t
   }
 
   return parseJSON(text);
+}
+
+async function analyzeWithWikipedia(plantNetResult) {
+  if (!plantNetResult || !plantNetResult.results || plantNetResult.results.length === 0) {
+    throw new Error('No PlantNet results to look up');
+  }
+
+  const top = plantNetResult.results[0];
+  const score = Math.round(top.score * 100);
+  if (score < 20) throw new Error('PlantNet confidence too low for Wikipedia lookup');
+
+  const sciName = top.species.scientificNameWithoutAuthor;
+  const commonName = top.species.commonNames?.[0] || sciName;
+  const family = top.species.family?.scientificNameWithoutAuthor || '';
+
+  // Wikipedia summary API — no key needed
+  const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(sciName)}`;
+  const wikiRes = await fetch(wikiUrl, { headers: { 'User-Agent': 'PlantID-App/1.0' } });
+
+  let description = `${sciName} is a plant species${family ? ` in the family ${family}` : ''}.`;
+  if (wikiRes.ok) {
+    const wikiData = await wikiRes.json();
+    if (wikiData.extract) description = wikiData.extract.split('. ').slice(0, 3).join('. ') + '.';
+  }
+
+  const confidence = score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
+
+  return {
+    identified: true,
+    commonName,
+    scientificName: sciName,
+    confidence,
+    description,
+    care: { water: 'See plant care guides for this species', light: 'Varies by species', soil: 'Varies by species' },
+    toxicity: 'Unknown — consult a local expert before handling',
+    facts: [`Scientific family: ${family || 'unknown'}`, `PlantNet match confidence: ${score}%`],
+    seasonal: null,
+    lookalikes: [],
+    needsBetterPhoto: false,
+    photoRequest: null,
+    _source: 'wikipedia'
+  };
 }
 
 function parseJSON(text) {

@@ -472,6 +472,7 @@ function renderResult(data) {
           <div class="plant-name">${data.commonName || 'Unknown Plant'}</div>
           <div class="scientific">${data.scientificName || ''}</div>
           <span class="confidence-badge ${data.confidence || 'medium'}">${data.confidence || 'medium'} confidence</span>
+          ${data._source === 'wikipedia' ? '<span style="display:inline-block;margin-top:4px;margin-left:6px;font-size:0.7rem;color:var(--muted)">via Wikipedia (free fallback)</span>' : ''}
         </div>
         <svg class="confidence-ring" viewBox="0 0 64 64">
           <circle class="ring-bg" cx="32" cy="32" r="26"/>

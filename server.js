@@ -179,7 +179,7 @@ For lookalikes, include any plants that could be confused with this one, especia
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Empty response from Gemini');
 
-  return JSON.parse(text);
+  return parseJSON(text);
 }
 
 async function identifyWithClaude(files, plantNetResult) {
@@ -235,7 +235,7 @@ For lookalikes include plants that could be confused with this one, especially t
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: prompt }] }]
     })
   });
@@ -254,9 +254,23 @@ For lookalikes include plants that could be confused with this one, especially t
     tracker.recordUsage(data.usage.input_tokens, data.usage.output_tokens);
   }
 
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('Could not parse Claude response');
-  return JSON.parse(jsonMatch[0]);
+  return parseJSON(text);
+}
+
+function parseJSON(text) {
+  // Extract first JSON object from text
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('No JSON found in response');
+  let raw = match[0];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Remove trailing commas before ] or }
+    raw = raw.replace(/,(\s*[}\]])/g, '$1');
+    // Replace unescaped newlines inside strings
+    raw = raw.replace(/"((?:[^"\\]|\\.)*)"/g, (_, s) => '"' + s.replace(/\n/g, ' ').replace(/\r/g, '') + '"');
+    return JSON.parse(raw);
+  }
 }
 
 function cleanup(files) {

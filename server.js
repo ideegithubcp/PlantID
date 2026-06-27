@@ -137,7 +137,7 @@ ${plantContext}
 
 Based on the photos and PlantNet's analysis, please:
 1. Confirm or correct the identification with your own visual assessment.
-2. If confident (>70%), provide common name, scientific name, brief description, care tips, toxicity warnings, and interesting facts.
+2. If confident (>70%), provide all fields below.
 3. If NOT confident, explain what's unclear and ask for specific better photos. Do NOT guess.
 
 Respond in JSON format:
@@ -150,9 +150,13 @@ Respond in JSON format:
   "care": { "water": "...", "light": "...", "soil": "..." },
   "toxicity": "...",
   "facts": ["...", "..."],
+  "seasonal": "Brief description of how this plant looks across the four seasons (spring/summer/autumn/winter).",
+  "lookalikes": [{ "name": "...", "warning": "How to tell them apart and why it matters" }],
   "needsBetterPhoto": false,
   "photoRequest": null
-}`;
+}
+
+For lookalikes, include any plants that could be confused with this one, especially if any are toxic. Return empty array if none.`;
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -202,7 +206,7 @@ async function identifyWithClaude(files, plantNetResult) {
       }).join('\n') + '\n\n';
   }
 
-  const prompt = `You are an expert botanist. Identify the plant in these ${files.length} photo(s).\n\n${plantContext}If confident, provide common name, scientific name, brief description, care tips (water/light/soil), toxicity notes, and 2-3 interesting facts. If NOT confident, ask for specific better photos.
+  const prompt = `You are an expert botanist. Identify the plant in these ${files.length} photo(s).\n\n${plantContext}If confident, provide all fields. If NOT confident, ask for specific better photos.
 
 Respond in this exact JSON format:
 {
@@ -214,9 +218,13 @@ Respond in this exact JSON format:
   "care": { "water": "...", "light": "...", "soil": "..." },
   "toxicity": "...",
   "facts": ["...", "..."],
+  "seasonal": "Brief description of how this plant looks across the four seasons.",
+  "lookalikes": [{ "name": "...", "warning": "How to tell them apart and why it matters" }],
   "needsBetterPhoto": false,
   "photoRequest": null
-}`;
+}
+
+For lookalikes include plants that could be confused with this one, especially toxic ones. Return empty array if none.`;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',

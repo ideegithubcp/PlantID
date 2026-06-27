@@ -15,367 +15,173 @@
       --text: #e8f5e9;
       --muted: #6b8f72;
       --danger: #f87171;
+      --warn: #fbbf24;
       --radius: 14px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* Top bar */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-      background: var(--surface);
-      border-bottom: 1px solid #1e3d22;
-    }
-    .topbar .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-    .topbar .brand span { font-size: 1.6rem; }
-    .mode-toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .mode-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-    .toggle-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface2);
-      border: 1.5px solid var(--accent-dim);
-      color: var(--accent2);
-      padding: 7px 16px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
+    /* Topbar */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid #1e3d22; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .toggle-btn { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1.5px solid var(--accent-dim); color: var(--accent2); padding: 6px 14px; border-radius: 999px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
     .toggle-btn:hover { background: var(--accent-dim); color: #fff; }
-    .toggle-btn.claude-active {
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-      border-color: #7c3aed;
-      color: #fff;
-    }
-    .toggle-btn .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-    .toggle-btn.claude-active .dot { background: #c4b5fd; }
+    .toggle-btn.claude-active { background: linear-gradient(135deg, #7c3aed, #4f46e5); border-color: #7c3aed; color: #fff; }
     .toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .toggle-btn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    .toggle-btn.claude-active .dot { background: #c4b5fd; }
 
     /* Spend bar */
-    .spend-bar-wrap {
-      background: var(--surface);
-      border-bottom: 1px solid #1e3d22;
-      padding: 6px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
+    .spend-bar-wrap { background: var(--surface); border-bottom: 1px solid #1e3d22; padding: 5px 20px; display: flex; align-items: center; gap: 10px; font-size: 0.73rem; color: var(--muted); }
     .spend-bar-wrap.hidden { display: none; }
-    .spend-bar {
-      flex: 1;
-      max-width: 180px;
-      height: 4px;
-      background: var(--surface2);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .spend-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 99px;
-      transition: width 0.4s;
-    }
-    .spend-bar-fill.warning { background: #fbbf24; }
+    .spend-bar { flex: 1; max-width: 160px; height: 3px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+    .spend-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s; }
+    .spend-bar-fill.warning { background: var(--warn); }
     .spend-bar-fill.danger { background: var(--danger); }
-
-    /* Lock banner */
-    .lock-banner {
-      background: #2d1515;
-      border-bottom: 1px solid var(--danger);
-      padding: 10px 24px;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--danger);
-      display: none;
-    }
+    .lock-banner { background: #2d1515; border-bottom: 1px solid var(--danger); padding: 8px 20px; text-align: center; font-size: 0.83rem; color: var(--danger); display: none; }
     .lock-banner.visible { display: block; }
 
     /* Main */
-    main {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 32px 16px 64px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-    .subtitle {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.95rem;
-      margin-bottom: 32px;
-    }
+    main { max-width: 700px; margin: 0 auto; padding: 24px 16px 80px; }
 
-    /* Drop zone */
-    .drop-zone {
-      border: 2px dashed var(--accent-dim);
-      border-radius: var(--radius);
-      padding: 48px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: var(--surface);
-    }
-    .drop-zone:hover, .drop-zone.drag-over {
-      border-color: var(--accent);
-      background: var(--surface2);
-    }
-    .drop-zone .icon { font-size: 3rem; margin-bottom: 12px; }
-    .drop-zone p { color: var(--muted); font-size: 0.95rem; }
+    /* Plant of the day */
+    .potd { background: var(--surface); border: 1px solid #1e3d22; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
+    .potd-icon { font-size: 2.4rem; flex-shrink: 0; }
+    .potd-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 2px; }
+    .potd-name { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+    .potd-sci { font-style: italic; font-size: 0.82rem; color: var(--muted); }
+    .potd-fact { font-size: 0.83rem; color: var(--text); margin-top: 4px; line-height: 1.4; }
+
+    /* Upload */
+    h1 { text-align: center; font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+    .subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+    .drop-zone { border: 2px dashed var(--accent-dim); border-radius: var(--radius); padding: 36px 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--surface); }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: var(--surface2); }
+    .drop-zone .icon { font-size: 2.4rem; margin-bottom: 10px; }
+    .drop-zone p { color: var(--muted); font-size: 0.9rem; }
     .drop-zone strong { color: var(--accent2); }
-    #file-input { display: none; }
+    .upload-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .camera-btn { flex: 1; padding: 11px; background: var(--surface2); border: 1.5px solid var(--accent-dim); color: var(--accent2); border-radius: var(--radius); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .camera-btn:hover { background: var(--accent-dim); color: #fff; }
+    #file-input, #camera-input { display: none; }
 
     /* Previews */
-    .previews {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .preview-wrap {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 2px solid var(--surface2);
-    }
-    .preview-wrap img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-    }
-    .preview-wrap .remove {
-      position: absolute;
-      top: 4px; right: 4px;
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 22px; height: 22px;
-      cursor: pointer;
-      font-size: 0.7rem;
-      display: flex; align-items: center; justify-content: center;
-    }
+    .previews { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .preview-wrap { position: relative; width: 90px; height: 90px; border-radius: 10px; overflow: hidden; border: 2px solid var(--surface2); }
+    .preview-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-wrap .remove { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.7); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; }
 
-    /* Identify button */
-    .identify-btn {
-      display: block;
-      width: 100%;
-      margin-top: 20px;
-      padding: 14px;
-      background: var(--accent-dim);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 1.05rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+    /* Buttons */
+    .identify-btn { display: block; width: 100%; margin-top: 16px; padding: 13px; background: var(--accent-dim); color: #fff; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
     .identify-btn:hover:not(:disabled) { background: #15803d; }
     .identify-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .identify-btn.claude-mode {
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-    }
+    .identify-btn.claude-mode { background: linear-gradient(135deg, #7c3aed, #4f46e5); }
     .identify-btn.claude-mode:hover:not(:disabled) { opacity: 0.9; }
-
-    .reset-btn {
-      display: block;
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      background: transparent;
-      color: var(--muted);
-      border: 1.5px solid var(--surface2);
-      border-radius: var(--radius);
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+    .reset-btn { display: none; width: 100%; margin-top: 8px; padding: 10px; background: transparent; color: var(--muted); border: 1.5px solid var(--surface2); border-radius: var(--radius); font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
     .reset-btn:hover { border-color: var(--muted); color: var(--text); }
+    .mode-indicator { text-align: center; font-size: 0.73rem; color: var(--muted); margin-top: 8px; }
 
     /* Loading */
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: var(--muted);
-    }
-    .spinner {
-      width: 48px; height: 48px;
-      border: 4px solid var(--surface2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .spinner { width: 44px; height: 44px; border: 4px solid var(--surface2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Result card */
-    .result {
-      margin-top: 32px;
-      background: var(--surface);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .result-header {
-      padding: 20px 24px;
-      background: var(--surface2);
-      border-bottom: 1px solid #1e3d22;
-    }
-    .result-header .plant-name {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--accent);
-    }
-    .result-header .scientific {
-      font-style: italic;
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-top: 2px;
-    }
-    .confidence-badge {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
+    /* Result */
+    .result { margin-top: 28px; background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+    .result-header { padding: 20px; background: var(--surface2); border-bottom: 1px solid #1e3d22; display: flex; gap: 16px; align-items: flex-start; }
+    .result-header-text { flex: 1; }
+    .plant-name { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+    .scientific { font-style: italic; color: var(--muted); font-size: 0.87rem; margin-top: 2px; }
+    .confidence-badge { display: inline-block; margin-top: 6px; padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
     .confidence-badge.high { background: #14532d; color: #4ade80; }
     .confidence-badge.medium { background: #713f12; color: #fbbf24; }
     .confidence-badge.low { background: #7f1d1d; color: #f87171; }
 
-    .result-body { padding: 20px 24px; }
-    .section { margin-bottom: 20px; }
-    .section h3 {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .section p { font-size: 0.95rem; line-height: 1.6; color: var(--text); }
+    /* Confidence ring */
+    .confidence-ring { flex-shrink: 0; width: 64px; height: 64px; }
+    .ring-bg { fill: none; stroke: var(--surface); stroke-width: 6; }
+    .ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 32px 32px; transition: stroke-dashoffset 1s ease; }
+    .ring-fill.high { stroke: #4ade80; }
+    .ring-fill.medium { stroke: #fbbf24; }
+    .ring-fill.low { stroke: #f87171; }
+    .ring-text { font-size: 11px; font-weight: 700; fill: var(--text); dominant-baseline: middle; text-anchor: middle; }
 
-    .care-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-    .care-item {
-      background: var(--surface2);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-    }
-    .care-item .icon { font-size: 1.4rem; margin-bottom: 4px; }
-    .care-item .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
-    .care-item .value { font-size: 0.85rem; margin-top: 4px; }
-
+    /* Result body */
+    .result-body { padding: 18px 20px; }
+    .section { margin-bottom: 18px; }
+    .section h3 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+    .section p { font-size: 0.92rem; line-height: 1.6; }
+    .care-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .care-item { background: var(--surface2); border-radius: 10px; padding: 10px; text-align: center; }
+    .care-item .icon { font-size: 1.3rem; margin-bottom: 3px; }
+    .care-item .label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; }
+    .care-item .value { font-size: 0.82rem; margin-top: 3px; }
     .facts-list { list-style: none; }
-    .facts-list li {
-      padding: 6px 0;
-      border-bottom: 1px solid var(--surface2);
-      font-size: 0.9rem;
-      color: var(--text);
-    }
+    .facts-list li { padding: 5px 0; border-bottom: 1px solid var(--surface2); font-size: 0.88rem; }
     .facts-list li:last-child { border: none; }
     .facts-list li::before { content: "🌿 "; }
+    .toxicity-box { background: #2d1515; border-left: 3px solid var(--danger); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 0.88rem; }
+    .seasonal-box { background: var(--surface2); border-radius: 10px; padding: 12px 14px; font-size: 0.88rem; line-height: 1.6; }
+    .lookalike-item { background: #2d200a; border-left: 3px solid var(--warn); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 8px; }
+    .lookalike-item:last-child { margin-bottom: 0; }
+    .lookalike-name { font-weight: 700; color: var(--warn); font-size: 0.88rem; }
+    .lookalike-warning { font-size: 0.83rem; color: var(--text); margin-top: 3px; line-height: 1.4; }
 
-    .toxicity {
-      background: #2d1515;
-      border-left: 3px solid var(--danger);
-      padding: 10px 14px;
-      border-radius: 0 8px 8px 0;
-      font-size: 0.9rem;
-    }
+    /* Result actions */
+    .result-actions { display: flex; gap: 8px; padding: 0 20px 18px; }
+    .action-btn { flex: 1; padding: 9px; border: 1.5px solid var(--surface2); background: transparent; color: var(--muted); border-radius: 10px; font-size: 0.83rem; cursor: pointer; transition: all 0.2s; }
+    .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .action-btn.saved { border-color: var(--accent); color: var(--accent); background: #14532d33; }
 
-    /* Photo request card */
-    .photo-request {
-      margin-top: 32px;
-      background: var(--surface);
-      border: 1.5px solid #713f12;
-      border-radius: var(--radius);
-      padding: 24px;
-    }
-    .photo-request h2 {
-      font-size: 1.1rem;
-      color: #fbbf24;
-      margin-bottom: 8px;
-    }
-    .photo-request p {
-      color: var(--text);
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    /* Mode indicator */
-    .mode-indicator {
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 10px;
-    }
+    /* Photo request */
+    .photo-request { margin-top: 28px; background: var(--surface); border: 1.5px solid #713f12; border-radius: var(--radius); padding: 22px; }
+    .photo-request h2 { font-size: 1.05rem; color: var(--warn); margin-bottom: 8px; }
+    .photo-request p { font-size: 0.92rem; line-height: 1.6; }
 
     /* Error */
-    .error-box {
-      margin-top: 20px;
-      background: #2d1515;
-      border: 1px solid var(--danger);
-      border-radius: var(--radius);
-      padding: 16px 20px;
-      color: var(--danger);
-      font-size: 0.9rem;
-    }
+    .error-box { margin-top: 18px; background: #2d1515; border: 1px solid var(--danger); border-radius: var(--radius); padding: 14px 18px; color: var(--danger); font-size: 0.88rem; }
+
+    /* History / Collection */
+    .section-tabs { display: flex; gap: 0; margin-top: 40px; border-bottom: 1px solid var(--surface2); }
+    .tab-btn { padding: 10px 20px; background: transparent; border: none; color: var(--muted); font-size: 0.88rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-content { display: none; padding-top: 16px; }
+    .tab-content.active { display: block; }
+    .history-empty { text-align: center; color: var(--muted); padding: 32px; font-size: 0.9rem; }
+    .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .history-card { background: var(--surface); border-radius: 12px; overflow: hidden; cursor: pointer; border: 1.5px solid transparent; transition: border-color 0.2s; }
+    .history-card:hover { border-color: var(--accent-dim); }
+    .history-card img { width: 100%; height: 100px; object-fit: cover; }
+    .history-card .hc-body { padding: 8px 10px; }
+    .history-card .hc-name { font-size: 0.83rem; font-weight: 700; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-card .hc-sci { font-size: 0.72rem; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-card .hc-date { font-size: 0.68rem; color: var(--muted); margin-top: 3px; }
+    .clear-btn { display: block; margin: 14px auto 0; background: transparent; border: 1px solid #7f1d1d; color: var(--danger); padding: 6px 16px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; }
+    .clear-btn:hover { background: #2d1515; }
+
+    /* Modal for history detail */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius); max-width: 520px; width: 100%; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--surface2); }
+    .modal-header h2 { font-size: 1.1rem; color: var(--accent); }
+    .modal-close { background: transparent; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+    .modal-body { padding: 16px 20px; }
+    .modal-body img { width: 100%; border-radius: 10px; margin-bottom: 14px; object-fit: cover; max-height: 200px; }
 
     @media (max-width: 500px) {
       .care-grid { grid-template-columns: 1fr 1fr; }
-      h1 { font-size: 1.5rem; }
+      h1 { font-size: 1.4rem; }
+      .result-actions { flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">
-    <span>🌿</span> PlantID
-  </div>
-  <div class="mode-toggle">
-    <span class="mode-label" id="mode-label">Using free AI</span>
+  <div class="brand">🌿 PlantID</div>
+  <div class="topbar-right">
     <button class="toggle-btn" id="toggle-btn" onclick="toggleMode()">
       <span class="dot"></span>
       <span id="toggle-text">Use Claude</span>
@@ -383,256 +189,442 @@
   </div>
 </div>
 
-<!-- Spend bar (only shown in Claude mode) -->
 <div class="spend-bar-wrap hidden" id="spend-bar-wrap">
   <span id="spend-text">Claude: $0.00 / $2.00</span>
   <div class="spend-bar"><div class="spend-bar-fill" id="spend-bar-fill" style="width:0%"></div></div>
   <span id="spend-pct">0%</span>
 </div>
-
-<!-- Lock banner -->
 <div class="lock-banner" id="lock-banner">
-  🔒 Claude spend limit of $2.00 reached — Claude is disabled until you approve more spend.
+  🔒 Claude spend limit of $2.00 reached — disabled until approved.
 </div>
 
 <main>
+  <div class="potd" id="potd"></div>
+
   <h1>What plant is this?</h1>
   <p class="subtitle">Upload 1–5 photos for the best result</p>
 
   <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
     <div class="icon">📷</div>
-    <p><strong>Click to upload</strong> or drag & drop photos here</p>
-    <p style="margin-top:6px;font-size:0.82rem;">JPG, PNG, WEBP · up to 10MB each · max 5 photos</p>
+    <p><strong>Click to upload</strong> or drag & drop</p>
+    <p style="margin-top:4px;font-size:0.78rem;">JPG, PNG · up to 10MB · max 5 photos</p>
+  </div>
+  <div class="upload-actions">
+    <button class="camera-btn" onclick="document.getElementById('camera-input').click()">📸 Take Photo</button>
   </div>
   <input type="file" id="file-input" accept="image/*" multiple />
+  <input type="file" id="camera-input" accept="image/*" capture="environment" />
 
   <div class="previews" id="previews"></div>
 
-  <button class="identify-btn" id="identify-btn" onclick="identify()" disabled>
-    Identify Plant
-  </button>
-  <button class="reset-btn" id="reset-btn" onclick="reset()" style="display:none">
-    🔄 Try another plant
-  </button>
+  <button class="identify-btn" id="identify-btn" onclick="identify()" disabled>Identify Plant</button>
+  <button class="reset-btn" id="reset-btn" onclick="reset()">🔄 Try another plant</button>
   <div class="mode-indicator" id="mode-indicator">🌱 Powered by PlantNet + Gemini Flash (free)</div>
 
   <div id="output"></div>
+
+  <!-- History & Collection tabs -->
+  <div class="section-tabs" id="history-tabs" style="display:none">
+    <button class="tab-btn active" onclick="switchTab('history')">🕒 History</button>
+    <button class="tab-btn" onclick="switchTab('collection')">⭐ My Collection</button>
+  </div>
+  <div class="tab-content active" id="tab-history"></div>
+  <div class="tab-content" id="tab-collection"></div>
 </main>
 
+<!-- Detail modal -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title"></h2>
+      <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
 <script>
-  let files = [];
-  let useClaudeMode = false;
-  let claudeLocked = false;
+// ─── State ───────────────────────────────────────────────────────────────────
+let files = [];
+let useClaudeMode = false;
+let claudeLocked = false;
+let currentResult = null;
+let currentPhotoUrl = null;
 
-  // Load spend status on page load
-  async function loadSpend() {
-    try {
-      const res = await fetch('/api/spend');
-      const data = await res.json();
-      updateSpendUI(data);
-    } catch {}
+// ─── Plant of the Day ────────────────────────────────────────────────────────
+const POTD_PLANTS = [
+  { icon: '🌵', name: 'Saguaro Cactus', sci: 'Carnegiea gigantea', fact: 'Can live over 150 years and grow arms only after 75 years.' },
+  { icon: '🌸', name: 'Cherry Blossom', sci: 'Prunus serrulata', fact: 'Each flower only blooms for about one week per year.' },
+  { icon: '🌿', name: 'Venus Flytrap', sci: 'Dionaea muscipula', fact: 'Requires two touches within 20 seconds to close its trap.' },
+  { icon: '🍀', name: 'Sensitive Plant', sci: 'Mimosa pudica', fact: 'Folds its leaves inward when touched — a response called seismonasty.' },
+  { icon: '🌺', name: 'Corpse Flower', sci: 'Amorphophallus titanum', fact: 'Produces the world\'s largest unbranched flower and blooms only once every 7–10 years.' },
+  { icon: '🌳', name: 'Dragon Blood Tree', sci: 'Dracaena cinnabari', fact: 'Its red sap has been used as medicine, dye, and varnish since ancient times.' },
+  { icon: '🍃', name: 'Welwitschia', sci: 'Welwitschia mirabilis', fact: 'Produces only two leaves its entire life — yet can live over 1,000 years.' },
+];
+
+function renderPOTD() {
+  const day = new Date().getDay();
+  const p = POTD_PLANTS[day];
+  document.getElementById('potd').innerHTML = `
+    <div class="potd-icon">${p.icon}</div>
+    <div>
+      <div class="potd-label">🌱 Plant of the Day</div>
+      <div class="potd-name">${p.name}</div>
+      <div class="potd-sci">${p.sci}</div>
+      <div class="potd-fact">${p.fact}</div>
+    </div>`;
+}
+
+// ─── Spend tracking ───────────────────────────────────────────────────────────
+async function loadSpend() {
+  try {
+    const res = await fetch('/api/spend');
+    const data = await res.json();
+    updateSpendUI(data);
+  } catch {}
+}
+
+function updateSpendUI(data) {
+  claudeLocked = data.locked;
+  const wrap = document.getElementById('spend-bar-wrap');
+  const fill = document.getElementById('spend-bar-fill');
+  const text = document.getElementById('spend-text');
+  const pct = document.getElementById('spend-pct');
+  const banner = document.getElementById('lock-banner');
+  const toggleBtn = document.getElementById('toggle-btn');
+
+  if (useClaudeMode) wrap.classList.remove('hidden');
+  else wrap.classList.add('hidden');
+
+  const percent = parseFloat(data.percentUsed);
+  fill.style.width = percent + '%';
+  fill.className = 'spend-bar-fill' + (percent >= 90 ? ' danger' : percent >= 60 ? ' warning' : '');
+  text.textContent = `Claude: $${data.totalSpend.toFixed(4)} / $${data.limit.toFixed(2)}`;
+  pct.textContent = percent + '%';
+
+  if (data.locked) {
+    banner.classList.add('visible');
+    toggleBtn.disabled = true;
+    if (useClaudeMode) { useClaudeMode = false; applyModeUI(); }
+  } else {
+    banner.classList.remove('visible');
+    toggleBtn.disabled = false;
   }
+}
 
-  function updateSpendUI(data) {
-    claudeLocked = data.locked;
-    const wrap = document.getElementById('spend-bar-wrap');
-    const fill = document.getElementById('spend-bar-fill');
-    const text = document.getElementById('spend-text');
-    const pct = document.getElementById('spend-pct');
-    const banner = document.getElementById('lock-banner');
-    const toggleBtn = document.getElementById('toggle-btn');
+// ─── Mode toggle ──────────────────────────────────────────────────────────────
+function toggleMode() {
+  if (claudeLocked) return;
+  useClaudeMode = !useClaudeMode;
+  applyModeUI();
+}
 
-    if (useClaudeMode) wrap.classList.remove('hidden');
-    else wrap.classList.add('hidden');
+function applyModeUI() {
+  const btn = document.getElementById('toggle-btn');
+  const text = document.getElementById('toggle-text');
+  const idBtn = document.getElementById('identify-btn');
+  const indicator = document.getElementById('mode-indicator');
+  const wrap = document.getElementById('spend-bar-wrap');
 
-    const percent = parseFloat(data.percentUsed);
-    fill.style.width = percent + '%';
-    fill.className = 'spend-bar-fill' + (percent >= 90 ? ' danger' : percent >= 60 ? ' warning' : '');
-    text.textContent = `Claude: $${data.totalSpend.toFixed(4)} / $${data.limit.toFixed(2)}`;
-    pct.textContent = percent + '%';
-
-    if (data.locked) {
-      banner.classList.add('visible');
-      toggleBtn.disabled = true;
-      toggleBtn.title = 'Claude spend limit reached';
-      if (useClaudeMode) {
-        useClaudeMode = false;
-        applyModeUI();
-      }
-    } else {
-      banner.classList.remove('visible');
-      toggleBtn.disabled = false;
-      toggleBtn.title = '';
-    }
+  if (useClaudeMode) {
+    btn.classList.add('claude-active');
+    text.textContent = '✓ Using Claude';
+    idBtn.classList.add('claude-mode');
+    indicator.textContent = '🤖 Powered by Claude (Anthropic)';
+    wrap.classList.remove('hidden');
+  } else {
+    btn.classList.remove('claude-active');
+    text.textContent = 'Use Claude';
+    idBtn.classList.remove('claude-mode');
+    indicator.textContent = '🌱 Powered by PlantNet + Gemini Flash (free)';
+    wrap.classList.add('hidden');
   }
+}
 
-  function applyModeUI() {
-    const btn = document.getElementById('toggle-btn');
-    const text = document.getElementById('toggle-text');
-    const label = document.getElementById('mode-label');
-    const idBtn = document.getElementById('identify-btn');
-    const indicator = document.getElementById('mode-indicator');
-    const wrap = document.getElementById('spend-bar-wrap');
+// ─── File handling ────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles([...e.dataTransfer.files]); });
+document.getElementById('file-input').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
+document.getElementById('camera-input').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
 
-    if (useClaudeMode) {
-      btn.classList.add('claude-active');
-      text.textContent = '✓ Using Claude';
-      label.textContent = 'Claude AI active';
-      idBtn.classList.add('claude-mode');
-      indicator.textContent = '🤖 Powered by Claude (Anthropic)';
-      wrap.classList.remove('hidden');
-    } else {
-      btn.classList.remove('claude-active');
-      text.textContent = 'Use Claude';
-      label.textContent = 'Using free AI';
-      idBtn.classList.remove('claude-mode');
-      indicator.textContent = '🌱 Powered by PlantNet + Gemini Flash (free)';
-      wrap.classList.add('hidden');
-    }
-  }
+function addFiles(newFiles) {
+  const imageFiles = newFiles.filter(f => f.type.startsWith('image/'));
+  files = [...files, ...imageFiles].slice(0, 5);
+  renderPreviews();
+  document.getElementById('identify-btn').disabled = files.length === 0;
+}
 
-  // Toggle mode
-  function toggleMode() {
-    if (claudeLocked) return;
-    useClaudeMode = !useClaudeMode;
-    applyModeUI();
-  }
+function removeFile(idx) {
+  files.splice(idx, 1);
+  renderPreviews();
+  document.getElementById('identify-btn').disabled = files.length === 0;
+}
 
-  function reset() {
-    files = [];
-    renderPreviews();
-    document.getElementById('output').innerHTML = '';
-    document.getElementById('identify-btn').disabled = true;
-    document.getElementById('reset-btn').style.display = 'none';
-  }
-
-  loadSpend();
-
-  // Drag & drop
-  const dropZone = document.getElementById('drop-zone');
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    addFiles([...e.dataTransfer.files]);
+function renderPreviews() {
+  const container = document.getElementById('previews');
+  container.innerHTML = '';
+  files.forEach((file, idx) => {
+    const url = URL.createObjectURL(file);
+    const wrap = document.createElement('div');
+    wrap.className = 'preview-wrap';
+    wrap.innerHTML = `<img src="${url}" /><button class="remove" onclick="removeFile(${idx})">✕</button>`;
+    container.appendChild(wrap);
   });
+}
 
-  document.getElementById('file-input').addEventListener('change', e => {
-    addFiles([...e.target.files]);
-    e.target.value = '';
-  });
+// ─── Identify ────────────────────────────────────────────────────────────────
+async function identify() {
+  if (files.length === 0) return;
+  const btn = document.getElementById('identify-btn');
+  const output = document.getElementById('output');
+  btn.disabled = true;
+  output.innerHTML = `<div class="loading"><div class="spinner"></div><p>Analysing your plant…</p></div>`;
 
-  function addFiles(newFiles) {
-    const imageFiles = newFiles.filter(f => f.type.startsWith('image/'));
-    const remaining = 5 - files.length;
-    files = [...files, ...imageFiles.slice(0, remaining)];
-    renderPreviews();
-    document.getElementById('identify-btn').disabled = files.length === 0;
-  }
+  // Save first photo URL for history
+  currentPhotoUrl = URL.createObjectURL(files[0]);
 
-  function removeFile(idx) {
-    files.splice(idx, 1);
-    renderPreviews();
-    document.getElementById('identify-btn').disabled = files.length === 0;
-  }
+  const formData = new FormData();
+  files.forEach(f => formData.append('images', f));
+  const endpoint = useClaudeMode ? '/api/identify/claude' : '/api/identify';
 
-  function renderPreviews() {
-    const container = document.getElementById('previews');
-    container.innerHTML = '';
-    files.forEach((file, idx) => {
-      const url = URL.createObjectURL(file);
-      const wrap = document.createElement('div');
-      wrap.className = 'preview-wrap';
-      wrap.innerHTML = `<img src="${url}" /><button class="remove" onclick="removeFile(${idx})">✕</button>`;
-      container.appendChild(wrap);
-    });
-  }
-
-  async function identify() {
-    if (files.length === 0) return;
-
-    const btn = document.getElementById('identify-btn');
-    const output = document.getElementById('output');
-    btn.disabled = true;
-    output.innerHTML = `<div class="loading"><div class="spinner"></div><p>Analyzing your plant…</p></div>`;
-
-    const formData = new FormData();
-    files.forEach(f => formData.append('images', f));
-
-    const endpoint = useClaudeMode ? '/api/identify/claude' : '/api/identify';
-
-    try {
-      const res = await fetch(endpoint, { method: 'POST', body: formData });
-      const data = await res.json();
-      if (res.status === 402 && data.error === 'claude_locked') {
-        updateSpendUI(data.spend);
-        output.innerHTML = `<div class="error-box">🔒 ${data.message}</div>`;
-      } else if (!res.ok) {
-        throw new Error(data.error || 'Unknown error');
-      } else {
-        // Refresh spend after every Claude call
-        if (useClaudeMode) loadSpend();
-        renderResult(data);
-        document.getElementById('reset-btn').style.display = 'block';
-      }
-    } catch (err) {
-      output.innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
-    } finally {
-      btn.disabled = false;
+  try {
+    const res = await fetch(endpoint, { method: 'POST', body: formData });
+    const data = await res.json();
+    if (res.status === 402 && data.error === 'claude_locked') {
+      updateSpendUI(data.spend);
+      output.innerHTML = `<div class="error-box">🔒 ${data.message}</div>`;
+    } else if (!res.ok) {
+      throw new Error(data.error || 'Unknown error');
+    } else {
+      if (useClaudeMode) loadSpend();
+      currentResult = data;
+      renderResult(data);
+      if (data.identified) saveToHistory(data, currentPhotoUrl);
+      showReset();
     }
+  } catch (err) {
+    output.innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
+    showReset();
+  } finally {
+    btn.disabled = false;
   }
+}
 
-  function renderResult(data) {
-    const output = document.getElementById('output');
+function showReset() {
+  document.getElementById('reset-btn').style.display = 'block';
+}
 
-    if (data.needsBetterPhoto || !data.identified) {
-      output.innerHTML = `
-        <div class="photo-request">
-          <h2>📸 Need better photos</h2>
-          <p>${data.photoRequest || "Please provide clearer or additional photos for a confident identification."}</p>
-        </div>`;
-      document.getElementById('reset-btn').style.display = 'block';
-      return;
-    }
+function reset() {
+  files = [];
+  currentResult = null;
+  currentPhotoUrl = null;
+  renderPreviews();
+  document.getElementById('output').innerHTML = '';
+  document.getElementById('identify-btn').disabled = true;
+  document.getElementById('reset-btn').style.display = 'none';
+}
 
-    const toxicitySection = data.toxicity && data.toxicity.toLowerCase() !== 'none' && data.toxicity.toLowerCase() !== 'non-toxic'
-      ? `<div class="section">
-          <h3>⚠️ Toxicity / Safety</h3>
-          <div class="toxicity">${data.toxicity}</div>
-        </div>` : '';
+// ─── Render result ────────────────────────────────────────────────────────────
+function renderResult(data) {
+  const output = document.getElementById('output');
 
-    const factsSection = data.facts && data.facts.length
-      ? `<div class="section">
-          <h3>Interesting Facts</h3>
-          <ul class="facts-list">${data.facts.map(f => `<li>${f}</li>`).join('')}</ul>
-        </div>` : '';
-
-    const care = data.care || {};
-
+  if (data.needsBetterPhoto || !data.identified) {
     output.innerHTML = `
-      <div class="result">
-        <div class="result-header">
+      <div class="photo-request">
+        <h2>📸 Need better photos</h2>
+        <p>${data.photoRequest || 'Please provide clearer or additional photos.'}</p>
+      </div>`;
+    return;
+  }
+
+  const confidenceMap = { high: 90, medium: 60, low: 30 };
+  const pct = confidenceMap[data.confidence] || 60;
+  const circumference = 2 * Math.PI * 26;
+  const offset = circumference - (pct / 100) * circumference;
+
+  const care = data.care || {};
+  const isSaved = isInCollection(data.scientificName);
+
+  const toxicitySection = data.toxicity && !['none','non-toxic','not toxic'].includes(data.toxicity.toLowerCase())
+    ? `<div class="section"><h3>⚠️ Toxicity / Safety</h3><div class="toxicity-box">${data.toxicity}</div></div>` : '';
+
+  const seasonalSection = data.seasonal
+    ? `<div class="section"><h3>🍂 Across the Seasons</h3><div class="seasonal-box">${data.seasonal}</div></div>` : '';
+
+  const lookalikesSection = data.lookalikes && data.lookalikes.length
+    ? `<div class="section"><h3>⚠️ Similar / Lookalike Plants</h3>
+        ${data.lookalikes.map(l => `
+          <div class="lookalike-item">
+            <div class="lookalike-name">${l.name}</div>
+            <div class="lookalike-warning">${l.warning}</div>
+          </div>`).join('')}
+       </div>` : '';
+
+  const factsSection = data.facts && data.facts.length
+    ? `<div class="section"><h3>Interesting Facts</h3><ul class="facts-list">${data.facts.map(f => `<li>${f}</li>`).join('')}</ul></div>` : '';
+
+  output.innerHTML = `
+    <div class="result">
+      <div class="result-header">
+        <div class="result-header-text">
           <div class="plant-name">${data.commonName || 'Unknown Plant'}</div>
           <div class="scientific">${data.scientificName || ''}</div>
           <span class="confidence-badge ${data.confidence || 'medium'}">${data.confidence || 'medium'} confidence</span>
         </div>
-        <div class="result-body">
-          ${data.description ? `<div class="section"><h3>About</h3><p>${data.description}</p></div>` : ''}
-          ${care.water || care.light || care.soil ? `
-          <div class="section">
-            <h3>Care Guide</h3>
-            <div class="care-grid">
-              ${care.water ? `<div class="care-item"><div class="icon">💧</div><div class="label">Water</div><div class="value">${care.water}</div></div>` : ''}
-              ${care.light ? `<div class="care-item"><div class="icon">☀️</div><div class="label">Light</div><div class="value">${care.light}</div></div>` : ''}
-              ${care.soil ? `<div class="care-item"><div class="icon">🪴</div><div class="label">Soil</div><div class="value">${care.soil}</div></div>` : ''}
-            </div>
-          </div>` : ''}
-          ${toxicitySection}
-          ${factsSection}
-        </div>
-      </div>`;
+        <svg class="confidence-ring" viewBox="0 0 64 64">
+          <circle class="ring-bg" cx="32" cy="32" r="26"/>
+          <circle class="ring-fill ${data.confidence || 'medium'}" cx="32" cy="32" r="26"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${circumference}"
+            id="ring-fill-anim"/>
+          <text class="ring-text" x="32" y="32">${pct}%</text>
+        </svg>
+      </div>
+      <div class="result-body">
+        ${data.description ? `<div class="section"><h3>About</h3><p>${data.description}</p></div>` : ''}
+        ${care.water || care.light || care.soil ? `
+        <div class="section">
+          <h3>Care Guide</h3>
+          <div class="care-grid">
+            ${care.water ? `<div class="care-item"><div class="icon">💧</div><div class="label">Water</div><div class="value">${care.water}</div></div>` : ''}
+            ${care.light ? `<div class="care-item"><div class="icon">☀️</div><div class="label">Light</div><div class="value">${care.light}</div></div>` : ''}
+            ${care.soil ? `<div class="care-item"><div class="icon">🪴</div><div class="label">Soil</div><div class="value">${care.soil}</div></div>` : ''}
+          </div>
+        </div>` : ''}
+        ${toxicitySection}
+        ${seasonalSection}
+        ${lookalikesSection}
+        ${factsSection}
+      </div>
+      <div class="result-actions">
+        <button class="action-btn ${isSaved ? 'saved' : ''}" id="save-btn" onclick="toggleCollection()">
+          ${isSaved ? '⭐ Saved' : '☆ Save to Collection'}
+        </button>
+        <button class="action-btn" onclick="shareResult()">↗ Share</button>
+      </div>
+    </div>`;
+
+  // Animate confidence ring
+  setTimeout(() => {
+    const el = document.getElementById('ring-fill-anim');
+    if (el) el.style.strokeDashoffset = offset;
+  }, 100);
+}
+
+// ─── Share ────────────────────────────────────────────────────────────────────
+async function shareResult() {
+  if (!currentResult) return;
+  const text = `🌿 ${currentResult.commonName} (${currentResult.scientificName})\n\n${currentResult.description || ''}\n\nIdentified with PlantID`;
+  if (navigator.share) {
+    try { await navigator.share({ title: currentResult.commonName, text }); return; } catch {}
   }
+  await navigator.clipboard.writeText(text);
+  alert('Copied to clipboard!');
+}
+
+// ─── Collection / History ─────────────────────────────────────────────────────
+function getHistory() { try { return JSON.parse(localStorage.getItem('plantid_history') || '[]'); } catch { return []; } }
+function getCollection() { try { return JSON.parse(localStorage.getItem('plantid_collection') || '[]'); } catch { return []; } }
+function saveHistory(h) { localStorage.setItem('plantid_history', JSON.stringify(h)); }
+function saveCollection(c) { localStorage.setItem('plantid_collection', JSON.stringify(c)); }
+
+function isInCollection(sciName) {
+  return getCollection().some(p => p.scientificName === sciName);
+}
+
+function saveToHistory(data, photoUrl) {
+  const history = getHistory();
+  history.unshift({ ...data, photoUrl, savedAt: new Date().toISOString() });
+  saveHistory(history.slice(0, 50));
+  renderHistoryTabs();
+}
+
+function toggleCollection() {
+  if (!currentResult) return;
+  const col = getCollection();
+  const idx = col.findIndex(p => p.scientificName === currentResult.scientificName);
+  if (idx >= 0) {
+    col.splice(idx, 1);
+    document.getElementById('save-btn').textContent = '☆ Save to Collection';
+    document.getElementById('save-btn').classList.remove('saved');
+  } else {
+    col.unshift({ ...currentResult, photoUrl: currentPhotoUrl, savedAt: new Date().toISOString() });
+    document.getElementById('save-btn').textContent = '⭐ Saved';
+    document.getElementById('save-btn').classList.add('saved');
+  }
+  saveCollection(col);
+  renderHistoryTabs();
+}
+
+function renderHistoryTabs() {
+  const history = getHistory();
+  const collection = getCollection();
+  const tabsEl = document.getElementById('history-tabs');
+
+  if (history.length === 0 && collection.length === 0) { tabsEl.style.display = 'none'; return; }
+  tabsEl.style.display = 'flex';
+
+  document.getElementById('tab-history').innerHTML = history.length === 0
+    ? '<div class="history-empty">No identifications yet.</div>'
+    : `<div class="history-grid">${history.map((p, i) => historyCardHTML(p, i, 'history')).join('')}</div>
+       <button class="clear-btn" onclick="clearHistory()">Clear history</button>`;
+
+  document.getElementById('tab-collection').innerHTML = collection.length === 0
+    ? '<div class="history-empty">Save plants to build your collection.</div>'
+    : `<div class="history-grid">${collection.map((p, i) => historyCardHTML(p, i, 'collection')).join('')}</div>`;
+}
+
+function historyCardHTML(p, i, source) {
+  const date = new Date(p.savedAt).toLocaleDateString();
+  const img = p.photoUrl ? `<img src="${p.photoUrl}" />` : `<div style="height:100px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2rem">🌿</div>`;
+  return `<div class="history-card" onclick="openModal(${source === 'history' ? `'history'` : `'collection'`}, ${i})">
+    ${img}
+    <div class="hc-body">
+      <div class="hc-name">${p.commonName || 'Unknown'}</div>
+      <div class="hc-sci">${p.scientificName || ''}</div>
+      <div class="hc-date">${date}</div>
+    </div>
+  </div>`;
+}
+
+function clearHistory() {
+  if (!confirm('Clear all history?')) return;
+  localStorage.removeItem('plantid_history');
+  renderHistoryTabs();
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === (name === 'history' ? 0 : 1)));
+  document.getElementById('tab-history').classList.toggle('active', name === 'history');
+  document.getElementById('tab-collection').classList.toggle('active', name === 'collection');
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+function openModal(source, idx) {
+  const items = source === 'history' ? getHistory() : getCollection();
+  const p = items[idx];
+  if (!p) return;
+  document.getElementById('modal-title').textContent = p.commonName || 'Plant';
+  document.getElementById('modal-body').innerHTML = `
+    ${p.photoUrl ? `<img src="${p.photoUrl}" />` : ''}
+    <p style="font-style:italic;color:var(--muted);margin-bottom:8px">${p.scientificName || ''}</p>
+    ${p.description ? `<p style="font-size:0.9rem;line-height:1.6;margin-bottom:10px">${p.description}</p>` : ''}
+    ${p.care ? `<p style="font-size:0.82rem;color:var(--muted)">💧 ${p.care.water || ''} &nbsp; ☀️ ${p.care.light || ''} &nbsp; 🪴 ${p.care.soil || ''}</p>` : ''}
+    ${p.seasonal ? `<p style="font-size:0.82rem;margin-top:10px;color:var(--text)">🍂 ${p.seasonal}</p>` : ''}`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) document.getElementById('modal').classList.remove('open');
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+renderPOTD();
+loadSpend();
+renderHistoryTabs();
 </script>
 </body>
 </html>
